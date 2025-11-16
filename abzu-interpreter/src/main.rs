@@ -1,13 +1,14 @@
 mod lexer;
 mod token;
+mod value;
 
 use std::io::{self, Write};
 use lexer::Lexer;
 use token::Token;
 
 fn main() {
-    println!("ENU Interpreter - Day 1");
-    println!("Cuneiform Programming Language");
+    println!("ENU Interpreter");
+    println!("Sexagecimal Programming Language with Cuneiform bindings");
     println!("Type 'exit' to quit\n");
     
     start_repl();
@@ -38,6 +39,16 @@ fn start_repl() {
         match tokens {
             Ok(tokens) => {
                 println!("Tokens: {:?}", tokens);
+
+                // Demonstrate number parsing
+                for token in &tokens {
+                    if let crate::token::Token::Number(num_str) = token {
+                        match crate::value::parse_number(num_str) {
+                            Ok(value) => println!("  Parsed '{}' as: {}", num_str, value),
+                            Err(e) => println!("  Failed to parse '{}': {}", num_str, e),
+                        }
+                    }
+                }
             }
             Err(e) => {
                 println!("Error: {}", e);

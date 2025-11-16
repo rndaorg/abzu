@@ -2,7 +2,7 @@
 pub enum Token {
     // Identifiers and literals
     Identifier(String),
-    Number(String),  // Store as string for now, will parse later
+    Number(String),  // Store as string for parsing into Value later
     
     // Operators
     Plus,        // +
