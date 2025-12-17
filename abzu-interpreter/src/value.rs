@@ -141,7 +141,18 @@ fn parse_sexagesimal(s: &str) -> Result<Value, NumberError> {
         ));
     }
     
-    Ok(Value::Sexagesimal(SexagesimalNum::new(integer_part, fractional_part)?))
+    // Handle negative sexagesimal numbers
+    let sexagesimal = if integer_part < 0 {
+        SexagesimalNum {
+            integer_part,
+            fractional_part: -fractional_part, // Make fractional part negative too
+            has_fraction: fractional_part != 0,
+        }
+    } else {
+        SexagesimalNum::new(integer_part, fractional_part)?
+    };
+    
+    Ok(Value::Sexagesimal(sexagesimal))
 }
 
 fn parse_sexagesimal_comma(s: &str) -> Result<Value, NumberError> {

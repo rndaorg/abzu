@@ -1,10 +1,14 @@
 mod lexer;
 mod token;
 mod value;
+mod parser;
+mod ast;
+mod interpreter;
 
 use std::io::{self, Write};
 use lexer::Lexer;
-use token::Token;
+use parser::Parser;
+use interpreter::{Interpreter, Environment};
 
 fn main() {
     println!("ENU Interpreter");
@@ -15,8 +19,11 @@ fn main() {
 }
 
 fn start_repl() {
+    let mut environment = Environment::new();
+    let mut interpreter = Interpreter::new();
+    
     loop {
-        print!("𒀜> ");  // Cuneiform-style prompt
+        print!("𒀜> ");
         io::stdout().flush().unwrap();
         
         let mut input = String::new();
@@ -34,24 +41,36 @@ fn start_repl() {
         
         // Create lexer and tokenize input
         let mut lexer = Lexer::new(input);
-        let tokens = lexer.tokenize();
+        let tokens = match lexer.tokenize() {
+            Ok(tokens) => tokens,
+            Err(e) => {
+                println!("Lexer Error: {}", e);
+                continue;
+            }
+        };
         
-        match tokens {
-            Ok(tokens) => {
-                println!("Tokens: {:?}", tokens);
-
-                // Demonstrate number parsing
-                for token in &tokens {
-                    if let crate::token::Token::Number(num_str) = token {
-                        match crate::value::parse_number(num_str) {
-                            Ok(value) => println!("  Parsed '{}' as: {}", num_str, value),
-                            Err(e) => println!("  Failed to parse '{}': {}", num_str, e),
+        // Parse tokens into AST
+        let mut parser = Parser::new(tokens);
+        let parse_result = parser.parse();
+        
+        match parse_result {
+            Ok(program) => {
+                println!("AST: {}", program);
+                
+                // Evaluate the program
+                match interpreter.eval_program(&program, &mut environment) {
+                    Ok(result) => {
+                        if let Some(value) = result {
+                            println!("Result: {}", value);
                         }
+                    }
+                    Err(e) => {
+                        println!("Runtime Error: {}", e);
                     }
                 }
             }
             Err(e) => {
-                println!("Error: {}", e);
+                println!("Parser Error: {}", e);
             }
         }
     }
